@@ -1,4 +1,3 @@
-apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
   name: policy-certificate
@@ -45,5 +44,4 @@ spec:
   - status: "True"
     type: ManagedClusterConditionAvailable
   clusterSelector:
-    matchExpressions:
-      - {key: environment, operator: In, values: ["OpenShift"]}
+    matchExpressions: []
