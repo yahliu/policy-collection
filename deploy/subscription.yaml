@@ -10,6 +10,9 @@ spec:
     - apiVersion: policy.open-cluster-management.io/v1
       kinds:
         - "*"
+    - apiVersion: apps.open-cluster-management.io/v1
+      kinds:
+        - "*"
   channel: policies/demo-stable-policies-chan
   placement:
     local: true
