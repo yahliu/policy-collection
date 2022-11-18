@@ -14,6 +14,7 @@ policyDefaults:
       compliance: "Compliant"
       kind: "Policy"
       apiVersion: "policy.open-cluster-management.io/v1"
+  pruneObjectBehavior: DeleteIfCreated
   placement:
     name: test-ordring-plc-placement-rule
     clusterSelectors:
