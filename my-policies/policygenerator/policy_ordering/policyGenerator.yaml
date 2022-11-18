@@ -1,0 +1,30 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: test-ordring-plc
+placementBindingDefaults:
+  name: test-ordring-plc-placement-binding
+policyDefaults:
+  controls:
+    - PR.DS-1 Data-at-rest
+  namespace: default
+  dependencies:
+    - name: ordering-plc-1
+      namespace: default
+      compliance: "Compliant"
+      kind: "Policy"
+      apiVersion: "policy.open-cluster-management.io/v1"
+  placement:
+    name: test-ordring-plc-placement-rule
+    clusterSelectors:
+      local-cluster: "true"
+  remediationAction: enforce
+  severity: medium
+policies:
+  - name: ordering-plc
+    manifests:
+      - path: input_plc/
+  - name: ordering-plc-1
+    manifests:
+      - path: input_plc1/
+    dependencies: []
