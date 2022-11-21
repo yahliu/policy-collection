@@ -1,2 +1,2 @@
 generators:
-  - ./policyGenerator.yaml
+- ./policyGenerator.yaml
