@@ -1,2 +1,4 @@
 generators:
-- ./policyGenerator.yaml
+  - policyGenerator.yaml
+commonLabels:
+  env: prod
