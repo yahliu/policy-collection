@@ -9,7 +9,7 @@ policyDefaults:
     - PR.DS-1 Data-at-rest
   namespace: default
   dependencies:
-    - name: ordering-plc-1
+    - name: depend-plc-1
       namespace: default
       compliance: "Compliant"
       kind: "Policy"
@@ -25,8 +25,8 @@ policies:
     manifests:
       - path: input_plc/
     remediationAction: "enforce"
-  - name: ordering-plc-1
+  - name: depend-plc-1
     manifests:
       - path: input_plc1/
-    remediationAction: "inform"
+    remediationAction: "enforce"
     dependencies: []
