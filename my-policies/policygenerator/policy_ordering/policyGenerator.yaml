@@ -19,13 +19,14 @@ policyDefaults:
     name: test-ordring-plc-placement-rule
     clusterSelectors:
       local-cluster: "true"
-  remediationAction: enforce
   severity: medium
 policies:
   - name: ordering-plc
     manifests:
       - path: input_plc/
+    remediationAction: "enforce"
   - name: ordering-plc-1
     manifests:
       - path: input_plc1/
+    remediationAction: "inform"
     dependencies: []
