@@ -1,9 +1,9 @@
-# This policy installs the Advanced Cluster Security Operator on the ACM hub
+# This policy installs the Advanced Cluster Security Operator on the Open Cluster Management hub
 # cluster and it create the Central Server.
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: policy-advanced-cluster-security-operator
+  name: policy-advanced-cluster-security-central
   annotations:
     policy.open-cluster-management.io/standards: NIST SP 800-53
     policy.open-cluster-management.io/categories: CM Configuration Management
@@ -27,6 +27,20 @@ spec:
               kind: Namespace
               metadata:
                 name: stackrox
+          - complianceType: musthave
+            objectDefinition:
+              apiVersion: v1
+              kind: Namespace
+              metadata:
+                name: rhacs-operator
+          - complianceType: musthave
+            objectDefinition:
+              apiVersion: operators.coreos.com/v1
+              kind: OperatorGroup
+              metadata:
+                name: rhacs-operator-group
+                namespace: rhacs-operator
+              spec: {}
   - objectDefinition:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
@@ -42,14 +56,13 @@ spec:
               kind: Subscription
               metadata:
                 name: rhacs-operator
-                namespace: openshift-operators
+                namespace: rhacs-operator
               spec:
                 channel: latest
                 installPlanApproval: Automatic
                 name: rhacs-operator
                 source: redhat-operators
                 sourceNamespace: openshift-marketplace
-                startingCSV: rhacs-operator.v3.62.0
   - objectDefinition:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
@@ -93,20 +106,20 @@ spec:
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: binding-policy-advanced-cluster-security-operator
+  name: binding-policy-advanced-cluster-security-central
 placementRef:
-  name: placement-policy-advanced-cluster-security-operator
+  name: placement-policy-advanced-cluster-security-central
   kind: PlacementRule
   apiGroup: apps.open-cluster-management.io
 subjects:
-- name: policy-advanced-cluster-security-operator
+- name: policy-advanced-cluster-security-central
   kind: Policy
   apiGroup: policy.open-cluster-management.io
 ---
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: placement-policy-advanced-cluster-security-operator
+  name: placement-policy-advanced-cluster-security-central
 spec:
   clusterConditions:
   - status: "True"

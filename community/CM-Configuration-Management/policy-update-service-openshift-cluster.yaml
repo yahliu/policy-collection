@@ -18,11 +18,6 @@ spec:
       spec:
         remediationAction: enforce
         severity: medium
-        namespaceSelector:
-          exclude:
-            - kube-*
-          include:
-            - default
         object-templates:
           - complianceType: musthave
             objectDefinition:
@@ -39,7 +34,6 @@ spec:
                 name: cincinnati-operator
                 source: redhat-operators
                 sourceNamespace: openshift-marketplace
-                startingCSV: update-service-operator.v4.6.0
   - objectDefinition:
       apiVersion: policy.open-cluster-management.io/v1
       kind: ConfigurationPolicy
@@ -48,11 +42,6 @@ spec:
       spec:
         remediationAction: enforce
         severity: medium
-        namespaceSelector:
-          exclude:
-            - kube-*
-          include:
-            - default
         object-templates:
           - complianceType: musthave
             objectDefinition:

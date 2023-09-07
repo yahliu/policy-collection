@@ -1,0 +1,69 @@
+# Update the requiredClusterSelector from the Placement predicates to match ONLY the clusters set/rules  
+# where you want to restore a backup as defined by the hdr-app-configmap restore section.
+# For example, to restore on the cluster with label environment=prod use this matchExpressions:
+#
+#  predicates:
+#    - requiredClusterSelector:
+#        labelSelector:
+#          matchExpressions:
+#            - key: environment
+#              operator: In
+#              values:
+#                - prod
+# 
+# The clusterSets list from the Placement spec is used to dynamically select a set of managedClusters in one or multiple ManagedClusterSet.
+# You can update the Placement clusterSets with the list of ManagedClusterSets to be used in your hub configuration.
+# 
+# IMPORTANT: You need to create a ManagedClusterSetBinding resource for each of the ManagedClusterSet used by your acm-app-restore-placement Placement.
+# For example, if using the default clusterSets, which is set by default, then you must create this resource on the hub,
+# in the same namespace with the acm-app-restore-placement Placement:
+#
+# apiVersion: cluster.open-cluster-management.io/v1beta2
+# kind: ManagedClusterSetBinding
+# metadata:
+#  name: default
+#spec:
+#  clusterSet: default
+#
+apiVersion: policy.open-cluster-management.io/v1beta1
+kind: PolicySet
+metadata:
+  name: acm-app-restore
+spec:
+  description: restore support for stateful apps running on managed clusters
+  policies:
+    - oadp-hdr-app-install
+    - oadp-hdr-app-restore
+---
+# the value for the acm-app-restore label is the name of the backup to restore
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: acm-app-restore-placement
+spec:
+  clusterSets:
+    - default # optionally, update this with a list of values, representing ManagedClusterSet resources
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: acm-app-restore
+              operator: Exists
+  tolerations:
+    - key: cluster.open-cluster-management.io/unreachable
+      operator: Exists
+    - key: cluster.open-cluster-management.io/unavailable
+      operator: Exists
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: acm-app-restore-placement-binding
+placementRef:
+  name: acm-app-restore-placement
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+subjects:
+  - name: acm-app-restore
+    apiGroup: policy.open-cluster-management.io
+    kind: PolicySet

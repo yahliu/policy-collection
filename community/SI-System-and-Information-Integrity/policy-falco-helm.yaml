@@ -1,7 +1,7 @@
 # Install falco using helm instead of using the operator. 
 
 # You must make sure the PlacementRule for the Policy installs the policy on the
-# ACM hub.  The PlacementRule inside the Policy is what determines which clusters
+# Open Cluster Management hub.  The PlacementRule inside the Policy is what determines which clusters
 # falco will be installed on.
 
 # Edit the parameters for the helm chart inside the Subscription resource to
@@ -20,7 +20,7 @@ metadata:
   annotations:
     policy.open-cluster-management.io/standards: NIST SP 800-53
     policy.open-cluster-management.io/categories: SI System and Information Integrity
-    policy.open-cluster-management.io/controls: SI-5 Security Alerts, Advisories, and Directives
+    policy.open-cluster-management.io/controls: SI-5 Security Alerts Advisories and Directives
 spec:
   remediationAction: enforce
   disabled: false
@@ -62,7 +62,7 @@ spec:
           name: policy-falco-application
         spec:
           remediationAction: enforce # the policy-template spec.remediationAction is overridden by the preceding parameter value for spec.remediationAction.
-          severity: low
+          severity: high
           namespaceSelector:
             exclude: ["kube-*"]
             include: ["*"]
@@ -94,7 +94,7 @@ spec:
           name: policy-falco-channel
         spec:
           remediationAction: enforce # the policy-template spec.remediationAction is overridden by the preceding parameter value for spec.remediationAction.
-          severity: low
+          severity: high
           namespaceSelector:
             exclude: ["kube-*"]
             include: ["*"]
@@ -118,7 +118,7 @@ spec:
           name: policy-falco-subscription
         spec:
           remediationAction: enforce # the policy-template spec.remediationAction is overridden by the preceding parameter value for spec.remediationAction.
-          severity: low
+          severity: high
           namespaceSelector:
             exclude: ["kube-*"]
             include: ["*"]
@@ -156,13 +156,13 @@ spec:
                                 condition: >
                                   (container.image.repository in (gcr.io/google_containers/hyperkube-amd64,
                                   gcr.io/google_containers/kube2sky, sysdig/agent, sysdig/falco,
-                                  sysdig/sysdig, falcosecurity/falco, quay.io/open-cluster-management) or
-                                  (k8s.ns.name in (kube-system, openshift-multus, openshift-monitoring,
-                                  open-cluster-management, openshift-sdn, openshift-dns,
-                                  openshift-machine-config-operator, openshift-cluster-machine-approver,
-                                  openshift-dns-operator, openshift-cloud-credential-operator,
-                                  openshift-machine-api, openshift-ingress-operator, openshift-console,
-                                  openshift-ovn-kubernetes)))
+                                  sysdig/sysdig, falcosecurity/falco, quay.io/stolostron,
+                                  quay.io/open-cluster-management) or (k8s.ns.name in (kube-system, 
+                                  openshift-multus, openshift-monitoring, open-cluster-management, 
+                                  openshift-sdn, openshift-dns, openshift-machine-config-operator, 
+                                  openshift-cluster-machine-approver, openshift-dns-operator, 
+                                  openshift-cloud-credential-operator, openshift-machine-api, 
+                                  openshift-ingress-operator, openshift-console, openshift-ovn-kubernetes)))
                               - list: allowed_k8s_users
                                 items: [
                                   "minikube", "minikube-user", "kubelet", "kops", "admin", "kube", "kube-proxy", "kube-apiserver-healthcheck",
@@ -208,7 +208,7 @@ spec:
                             pullPolicy: IfNotPresent
                             registry: docker.io
                             repository: falcosecurity/falco
-                            tag: 0.28.1
+                            tag: latest
                           podSecurityPolicy:
                             create: false
                           scc:
@@ -227,7 +227,7 @@ spec:
           name: policy-falco-placement
         spec:
           remediationAction: enforce # the policy-template spec.remediationAction is overridden by the preceding parameter value for spec.remediationAction.
-          severity: low
+          severity: high
           namespaceSelector:
             exclude: ["kube-*"]
             include: ["*"]

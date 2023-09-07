@@ -1,0 +1,222 @@
+#
+# This policy deploys velero using the OADP operator and configures the connection to the storage location
+# for all managed clusters matching the placement policy
+#
+# This policy must be installed before the oadp-hdr-app-backup or oadp-hdr-app-restore policies, which depend on it.
+#
+# Create this policy on the hub managing clusters where you want to create stateful applications backups,
+# or where you restore these backup.  
+# Before installing this policy on the hub, create the hdr-app-configmap ConfigMap and set all required properties.
+#
+# Make sure the hdr-app-configmap's storage settings are properly set before applying this policy.
+#
+# IMPORTANT: 
+# If the hub is one of the clusters where this policy will be placed, and the backupNS=open-cluster-management-backup
+# then first enable cluster-backup on MultiClusterHub. 
+# MultiClusterHub looks for the cluster-backup option and if set to false, it uninstalls OADP from the
+# open-cluster-management-backup and deletes the namespace.
+#
+# Note that it is set to enforce by default.
+#
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: oadp-hdr-app-install
+  annotations:
+    policy.open-cluster-management.io/categories: PR.IP Information Protection Processes and Procedures
+    policy.open-cluster-management.io/controls: PR.IP-4 Backups of information are conducted maintained and tested
+    policy.open-cluster-management.io/standards: NIST-CSF
+spec:
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-ns-oadp-operators
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: '{{hub $configMap.data.backupNS hub}}'
+            {{hub end hub}}
+          remediationAction: enforce
+          pruneObjectBehavior: DeleteIfCreated
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-oadp-operator-group
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1
+                kind: OperatorGroup
+                metadata:
+                  name: redhat-oadp-operator-group
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                spec:
+                  targetNamespaces:
+                    - '{{hub $configMap.data.backupNS hub}}'
+            {{hub end hub}}
+          remediationAction: enforce
+          pruneObjectBehavior: DeleteIfCreated
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-oadp-operator-subscription
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: operators.coreos.com/v1alpha1
+                kind: Subscription
+                metadata:
+                  name: redhat-oadp-operator-subscription
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                spec:
+                  name: '{{hub $configMap.data.subscriptionName hub}}'
+                  channel: '{{hub $configMap.data.channel hub}}'
+                  installPlanApproval: Automatic
+                  source: redhat-operators
+                  sourceNamespace: openshift-marketplace
+            {{hub end hub}}
+          remediationAction: enforce
+          pruneObjectBehavior: DeleteIfCreated
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-backup-storage-credentials-secret
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                data:
+                  cloud: '{{hub $configMap.data.dpaAwsBackupCloudCredentials | protect hub}}'
+                kind: Secret
+                metadata:
+                  name: '{{hub $configMap.data.dpaBackupCloudCredentialsName hub}}'
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                type: Opaque
+            {{hub end hub}}
+          remediationAction: enforce
+          pruneObjectBehavior: DeleteIfCreated
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: create-oadp-dpa-resource
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: oadp.openshift.io/v1alpha1
+                kind: DataProtectionApplication
+                metadata:
+                  name: '{{hub $configMap.data.dpaName hub}}'
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                spec: '{{hub $configMap.data.dpaSpec | toLiteral hub}}'
+            {{hub end hub}}
+          pruneObjectBehavior: DeleteIfCreated                
+          remediationAction: enforce
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: check-pod-running-app-oadp
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  annotations:
+                    repository: https://github.com/openshift/oadp-operator
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                status:
+                  phase: Running
+            {{hub end hub}}
+          remediationAction: inform
+          severity: high 
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: check-pod-running-app-velero
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  labels:
+                    app.kubernetes.io/name: velero
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                status:
+                  phase: Running
+            {{hub end hub}}
+          remediationAction: inform
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: check-oadp-dpa-complete
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: oadp.openshift.io/v1alpha1
+                kind: DataProtectionApplication
+                metadata:
+                  name: '{{hub $configMap.data.dpaName hub}}'
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                status:
+                  conditions:
+                    - reason: Complete
+                      type: Reconciled
+            {{hub end hub}}
+          remediationAction: inform
+          severity: high
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: check-backup-storage-location-available
+        spec:
+          object-templates-raw: |
+            {{hub with $configMap := (lookup "v1" "ConfigMap" "" "hdr-app-configmap") hub}}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: velero.io/v1
+                kind: BackupStorageLocation
+                metadata:
+                  name: '{{hub $configMap.data.dpaName hub}}-1'
+                  namespace: '{{hub $configMap.data.backupNS hub}}'
+                status:
+                  phase: Available
+            {{hub end hub}}
+          remediationAction: inform
+          severity: high

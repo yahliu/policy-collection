@@ -34,7 +34,7 @@ spec:
                   location: "metadata.annotations.owner"
                   parameters: 
                     assign: 
-                      value:  "admin"
+                      value: "admin"
 ---
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding

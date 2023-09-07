@@ -16,8 +16,6 @@ spec:
           name: allow-http-and-https
         spec:
           namespaceSelector:
-            exclude:
-              - kube-*
             include:
               - default
           object-templates:
@@ -46,8 +44,6 @@ spec:
           name: deny-all
         spec:
           namespaceSelector:
-            exclude:
-              - kube-*
             include:
               - default
           object-templates:
@@ -58,8 +54,8 @@ spec:
                 metadata:
                   name: deny-all
                 spec:
-                  podSelector:
-                    ingress: []
+                  podSelector: {}
+                  ingress: []
           severity: low
           remediationAction: inform
     - objectDefinition:
@@ -69,8 +65,6 @@ spec:
           name: allow-same-namespace
         spec:
           namespaceSelector:
-            exclude:
-              - kube-*
             include:
               - default
           object-templates:
@@ -81,10 +75,10 @@ spec:
                 metadata:
                   name: allow-same-namespace
                 spec:
-                  podSelector:
-                    ingress:
-                      - from:
-                          - podSelector: {}
+                  podSelector: {}
+                  ingress:
+                    - from:
+                        - podSelector: {}
           severity: low
           remediationAction: inform
     - objectDefinition:
@@ -94,8 +88,6 @@ spec:
           name: allow-pod-and-namespace-both
         spec:
           namespaceSelector:
-            exclude:
-              - kube-*
             include:
               - default
           object-templates:
