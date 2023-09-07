@@ -8,4 +8,4 @@ spec:
   - requiredClusterSelector:
       labelSelector:
         matchExpressions:
-          - {key: name, operator: In, values: ["local-cluster"]}
+          - {key: feature.open-cluster-management.io/addon-governance-policy-framework, operator: In, values: ["available"]}
