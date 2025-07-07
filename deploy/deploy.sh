@@ -30,6 +30,7 @@ help () {
   echo "  --deploy-app                Create an Application manifest for additional visibility in the UI"
   echo "                                (Search should also be enabled in the Hub cluster)"
   echo "  --dry-run                   Print the YAML to stdout without applying them to the cluster"
+  echo "  --y                          Automatically answer yes to all prompts"
   echo ""
 }
 
@@ -79,13 +80,17 @@ while [[ $# -gt 0 ]]; do
             shift
             DRY_RUN="true"
             ;;
+            --y)
+            YES=true
+            shift
+            ;;
             *)    # default
             echo "Invalid input: ${1}"
             exit 1
             shift
             ;;
         esac
-done
+    done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 # Display configuration and set default values if needed
@@ -100,16 +105,18 @@ echo "Git Path:           ${GH_PATH:=stable}"
 echo "Sync Rate:          ${RATE:=medium}"
 echo "Create Application: ${DEPLOY_APP:=false}"
 echo "Dry run:            ${DRY_RUN:=false}"
+echo "Yes:                ${YES:=false}"
 echo "====================================================="
 
-while read -r -p "Would you like to proceed (y/n)? " response; do
-  case "$response" in
-    Y|y|Yes|yes ) break
-                  ;;
-    N|n|No|no )   exit 1
-                  ;;
+if [ "$YES" = true ]; then
+  echo "Auto-yes mode enabled, skipping prompt."
+else
+  read -r -p "Would you like to proceed (y/n)? " yn
+  case "$yn" in
+     [Yy]* ) ;;
+    * ) echo "Aborted."; exit 1;;
   esac
-done
+fi
 
 if [ "$DRY_RUN" != "true" ]; then
   # Check for the namespace

@@ -100,4 +100,4 @@ spec:
     type: ManagedClusterConditionAvailable
   clusterSelector:
     matchExpressions:
-      - {key: vendor, operator: In, values: ["OpenShift"]}
+      - {key: feature.open-cluster-management.io/addon-governance-policy-framework, operator: In, values: ["available"]}
