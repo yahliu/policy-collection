@@ -1,0 +1,40 @@
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: install-quay-operator
+placementBindingDefaults:
+  name: quay-placement-binding
+policyDefaults:
+  namespace: policies
+  placement:
+    labelSelector:
+      matchExpressions:
+        - key: deploy-quay
+          operator: In
+          values:
+            - "true"
+  remediationAction: enforce
+  severity: medium
+  namespaceSelector:
+    exclude:
+      - kube-*
+    include:
+      - '*'
+  evaluationInterval:
+    compliant: 10m
+    noncompliant: 10s
+policies:
+  # Policy 1: Install Quay Operator
+  - name: quay-operator-install
+    policyAnnotations:
+      ran.openshift.io/ztp-deploy-wave: "1"
+    manifests:
+      - path: input-quay/QuaySubscription.yaml
+
+  # Policy 2: Verify Operator Status
+  - name: quay-operator-verify
+    policyAnnotations:
+      ran.openshift.io/ztp-deploy-wave: "2"
+    manifests:
+      - path: input-quay/QuayOperatorStatus.yaml

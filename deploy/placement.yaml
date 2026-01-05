@@ -10,5 +10,5 @@ spec:
     matchExpressions:
       - key: local-cluster
         operator: In
-        values:
+        values: 
           - "true"
